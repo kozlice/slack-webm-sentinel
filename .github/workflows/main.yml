@@ -1,0 +1,17 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Build, Tag, Publish Docker
+      uses: HurricanKai/Publish-Docker-Github-Action@1.12.1
+      with:
+        name: kozlice/slack-webm-sentinel
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_TOKEN }}
