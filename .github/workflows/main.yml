@@ -9,7 +9,17 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-      
+
+    # Latest / master
+    - name: Build, Tag, Publish Docker - latest
+      uses: HurricanKai/Publish-Docker-Github-Action@1.12.1
+      if: false == contains(github.ref, 'refs/tags/v')
+      with:
+        name: kozlice/slack-webm-sentinel
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_TOKEN }}
+    
+    # Tagged versions
     - name: Build, Tag, Publish Docker - tagged version
       uses: HurricanKai/Publish-Docker-Github-Action@1.12.1
       if: contains(github.ref, 'refs/tags/v')
@@ -18,10 +28,3 @@ jobs:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_TOKEN }}
         tagging: true
-
-    - name: Build, Tag, Publish Docker - latest
-      uses: HurricanKai/Publish-Docker-Github-Action@1.12.1
-      with:
-        name: kozlice/slack-webm-sentinel
-        username: ${{ secrets.DOCKER_HUB_USERNAME }}
-        password: ${{ secrets.DOCKER_HUB_TOKEN }}
