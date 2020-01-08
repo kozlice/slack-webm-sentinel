@@ -12,9 +12,9 @@ Done via env variables:
 |Name|Required?|Description|
 |---|---|---|
 |`SLACK_API_TOKEN`|Yes|Bot access token (starts with `xoxb-...`)|
-|`NOTIFY_MODE`    |No |Can be `message` (bot will post a message when it finds URL), `reaction` (default, will add emoji to post with link) or `none`|
+|`NOTIFY_MODE`    |No |How to let users know about bot activity. Can be one of:<ul><li>`reaction` - default, will add emoji to a message with link)</li><li>`message` - will post a message when it finds URL</li><li>`none` - do not notify</li>|
 |`DEBUG`          |No |Will set logging level to debug|
-|`TEMP_DIR`       |No |Used for downloads and video converting. Bot cleans them up all the time|
+|`TEMP_DIR`       |No |Will be used for downloads and video converting. Bot removes them after link is handled. Default is `/tmp`|
 
 ### Run in Docker
 
@@ -22,6 +22,5 @@ Done via env variables:
 docker run \
   --mount type=volume,target=/tmp \
   -e SLACK_API_TOKEN=xoxb-... \ 
-  -e TEMP_DIR=/tmp \
   kozlice/slack-webm-sentinel
 ```
