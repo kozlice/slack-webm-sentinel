@@ -33,11 +33,12 @@ type config struct {
 var api *slack.Client
 var rtm *slack.RTM
 var webmUrlMatcher = regexp.MustCompile(`https?://\S+\.webm`)
+var mp4UrlMatcher = regexp.MustCompile(`https?://\S+\.mp4`)
 var logger = log.New()
 var currentBotId = ""
 var cfg = config{}
 
-func handle(url string, ev *slack.MessageEvent) {
+func handle(url string, bypassConverter bool, ev *slack.MessageEvent) {
 	logger.Debug(fmt.Sprintf("Found matching URL %s", url))
 
 	switch cfg.NotifyMode {
@@ -58,16 +59,20 @@ func handle(url string, ev *slack.MessageEvent) {
 	}
 	logger.Debug(fmt.Sprintf("Successfully downloaded %s into %s", url, source))
 
-	// Convert .webm to .mp4
-	logger.Debug(fmt.Sprintf("Converting %s into .mp4", source))
-	result, err := convert(source)
-	// Remove source file regardless of success
-	os.Remove(source)
-	if err != nil {
-		logger.Error(fmt.Sprintf("Could not convert %s, error: %v", source, err))
-		return
+	result := source
+
+	if !bypassConverter {
+		// Convert .webm to .mp4
+		logger.Debug(fmt.Sprintf("Converting %s into .mp4", source))
+		result, err = convert(source)
+		// Remove source file regardless of success
+		os.Remove(source)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Could not convert %s, error: %v", source, err))
+			return
+		}
+		logger.Debug(fmt.Sprintf("Successfully encoded %s into .mp4", source))
 	}
-	logger.Debug(fmt.Sprintf("Successfully encoded %s into .mp4", source))
 
 	// Send message with .mp4
 	logger.Debug(fmt.Sprintf("Uploading converted file %s", result))
@@ -194,9 +199,15 @@ func main() {
 			}
 
 			// Find all URLs ending with `.webm` and handle them
-			matches := webmUrlMatcher.FindAllStringSubmatch(ev.Text, -1)
-			for _, match := range matches {
-				go handle(match[0], ev)
+			webmMatches := webmUrlMatcher.FindAllStringSubmatch(ev.Text, -1)
+			for _, match := range webmMatches {
+				go handle(match[0], false, ev)
+			}
+
+			// Same for `.mp4`
+			mp4Matches := mp4UrlMatcher.FindAllStringSubmatch(ev.Text, -1)
+			for _, match := range mp4Matches {
+				go handle(match[0], true, ev)
 			}
 
 		default:
